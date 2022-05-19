@@ -1,0 +1,27 @@
+---
+kind: pipeline
+name: system-upgrade-controller
+
+platform:
+  os: linux
+  arch: amd64
+
+clone:
+  depth: 1
+
+concurrency:
+  limit: 1
+
+steps:
+
+  - name: Upgrade-RKE2-Clusters
+    image: supporttools/kube-builder:latest
+    environment:
+      CATTLE_SERVER:
+        from_secret: cattle_server
+      CATTLE_ACCESS_KEY:
+        from_secret: cattle_accesskey
+      CATTLE_SECRET_KEY:
+        from_secret: cattle_secretkey        
+    commands:
+      - bash upgrade.sh
