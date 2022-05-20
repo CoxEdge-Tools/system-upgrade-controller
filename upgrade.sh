@@ -57,6 +57,7 @@ for kubeconfig in $(ls /drone/src/kubeconfigs/*); do
     done
     if [[ "${WAIT_ON_NODES}" == "true" ]]
     then
+        echo "Waiting on upgrade pods..."
         until [[ "$(kubectl --kubeconfig ${kubeconfig} -n system-upgrade get pods -l upgrade.cattle.io/plan --no-headers | grep -v Completed | wc -l)" == "0" ]]
         do
             echo "Sleeping"
