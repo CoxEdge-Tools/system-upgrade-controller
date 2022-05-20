@@ -25,19 +25,19 @@ else
     rancher-projects --rancher-server ${CATTLE_SERVER} --rancher-access-key ${CATTLE_ACCESS_KEY} --rancher-secret-key ${CATTLE_SECRET_KEY} --get-clusters-by-type "rke2" --get-clusters-by-label "rke2-upgrade=true,maintenance=true" --kubeconfig-dir kubeconfigs > /dev/null
 fi
 
+echo "########################################################################################################################################################################"
+
 for kubeconfig in $(ls /drone/src/kubeconfigs/*); do
     cluster=`echo ${kubeconfig} | awk -F '/' '{print $5}'`
     echo "Cluster: ${cluster}"
     echo "Setting up kubeconfig file: ${kubeconfig}"
     export KUBECONFIG=$kubeconfig
     echo "Setting up RKE2 cluster"
-    if ! kubectl cluster-info
+    if ! kubectl get nodes -o wide
     then
         echo "Problem connecting to the cluster"
         continue
     fi
-    kubectl get nodes -o wide
-    echo "########################################################################################################################################################################"
     echo "Cluster:" ${cluster}    
     echo "Installing/Upgrading System Upgrade Controller"
     rancher-projects --rancher-server ${CATTLE_SERVER} --rancher-access-key ${CATTLE_ACCESS_KEY} --rancher-secret-key ${CATTLE_SECRET_KEY} --cluster-name ${cluster} --project-name Cluster-Services --namespace system-upgrade --create-namespace true > /dev/null
@@ -63,4 +63,5 @@ for kubeconfig in $(ls /drone/src/kubeconfigs/*); do
             sleep 1
         done
     fi
+    echo "########################################################################################################################################################################"
 done
