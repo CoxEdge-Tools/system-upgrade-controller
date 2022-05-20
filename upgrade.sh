@@ -38,7 +38,7 @@ for kubeconfig in $(ls /drone/src/kubeconfigs/*); do
     rancher-projects --rancher-server ${CATTLE_SERVER} --rancher-access-key ${CATTLE_ACCESS_KEY} --rancher-secret-key ${CATTLE_SECRET_KEY} --cluster-name ${cluster} --project-name Cluster-Services --namespace system-upgrade --create-namespace true > /dev/null
     kubectl --kubeconfig ${kubeconfig} apply -f https://github.com/rancher/system-upgrade-controller/releases/download/v0.9.1/system-upgrade-controller.yaml
     echo "Waiting for system-upgrade-controller to successfully start"
-    timeout 60s kubectl --kubeconfig ${kubeconfig} -n system-upgrade rollout status deployments system-upgrade-controller --watch=true
+    kubectl --kubeconfig ${kubeconfig} -n system-upgrade rollout status deployments system-upgrade-controller --watch=true
     kubectl --kubeconfig ${kubeconfig} -n system-upgrade apply -f ./plans/
     echo "Labels all nodes"
     for node in `kubectl get nodes -o name | awk -F'/' '{print $2}'`
