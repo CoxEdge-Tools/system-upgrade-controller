@@ -38,7 +38,11 @@ for kubeconfig in $(ls /drone/src/kubeconfigs/*); do
     rancher-projects --rancher-server ${CATTLE_SERVER} --rancher-access-key ${CATTLE_ACCESS_KEY} --rancher-secret-key ${CATTLE_SECRET_KEY} --cluster-name ${cluster} --project-name Cluster-Services --namespace system-upgrade --create-namespace true > /dev/null
     kubectl --kubeconfig ${kubeconfig} apply -f https://github.com/rancher/system-upgrade-controller/releases/download/v0.9.1/system-upgrade-controller.yaml
     echo "Waiting for system-upgrade-controller to successfully start"
-    kubectl --kubeconfig ${kubeconfig} -n system-upgrade rollout status deployments system-upgrade-controller --watch=true
+    until kubectl --kubeconfig ${kubeconfig} -n system-upgrade get pods -l upgrade.cattle.io/controller=system-upgrade-controller -o custom-columns=READY:status.containerStatuses[*].ready --no-headers | grep true
+    do
+        echo "Sleeping"
+        sleep 1
+    done
     kubectl --kubeconfig ${kubeconfig} -n system-upgrade apply -f ./plans/
     echo "Labels all nodes"
     for node in `kubectl get nodes -o name | awk -F'/' '{print $2}'`
@@ -48,7 +52,7 @@ for kubeconfig in $(ls /drone/src/kubeconfigs/*); do
     done
     if [[ "${WAIT_ON_NODES}" == "true" ]]
     then
-        until [[ "$(kubectl -n system-upgrade get pods -l upgrade.cattle.io/plan --no-headers | grep -v Completed | wc -l)" == "0" ]]
+        until [[ "$(kubectl --kubeconfig ${kubeconfig} -n system-upgrade get pods -l upgrade.cattle.io/plan --no-headers | grep -v Completed | wc -l)" == "0" ]]
         do
             echo "Sleeping"
             sleep 1
