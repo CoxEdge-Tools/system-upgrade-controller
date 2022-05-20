@@ -18,7 +18,12 @@ else
 fi
 
 echo "Getting kubeconfig files for RKE2 clusters"
-rancher-projects --rancher-server ${CATTLE_SERVER} --rancher-access-key ${CATTLE_ACCESS_KEY} --rancher-secret-key ${CATTLE_SECRET_KEY} --get-clusters-by-type "rke2" --get-clusters-by-label "rke2-upgrade=true,maintenance=true" --kubeconfig-dir kubeconfigs
+if [[ ${DEBUG} == "true" ]]
+then
+    rancher-projects --rancher-server ${CATTLE_SERVER} --rancher-access-key ${CATTLE_ACCESS_KEY} --rancher-secret-key ${CATTLE_SECRET_KEY} --get-clusters-by-type "rke2" --get-clusters-by-label "rke2-upgrade=true,maintenance=true" --kubeconfig-dir kubeconfigs --debug
+else
+    rancher-projects --rancher-server ${CATTLE_SERVER} --rancher-access-key ${CATTLE_ACCESS_KEY} --rancher-secret-key ${CATTLE_SECRET_KEY} --get-clusters-by-type "rke2" --get-clusters-by-label "rke2-upgrade=true,maintenance=true" --kubeconfig-dir kubeconfigs > /dev/null
+fi
 
 for kubeconfig in $(ls /drone/src/kubeconfigs/*); do
     cluster=`echo ${kubeconfig} | awk -F '/' '{print $5}'`
